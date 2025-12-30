@@ -461,21 +461,21 @@
     </div>
 
     <div id="entry-overlay">
-        <button onclick="startSimulator()" class="roll-btn px-10 py-4 text-lg md:text-xl border-2">Start Simulator</button>
-        <button onclick="showAuth()" class="mt-6 roll-btn px-10 py-4 text-lg md:text-xl border-2">Leaderboard</button>
+        <button onclick="showAuth()" class="roll-btn px-10 py-4 text-lg md:text-xl border-2">Start Simulator</button>
+        <button onclick="showLeaderboard()" class="mt-6 roll-btn px-10 py-4 text-lg md:text-xl border-2">Leaderboard</button>
         <p class="mt-4 text-[10px] md:text-xs text-white/60 tracking-[0.2em] uppercase font-bold">Made by @tlq_h</p>
     </div>
 
     <div id="auth-overlay">
         <div class="auth-container">
-            <div class="auth-title">Leaderboard Access</div>
-            <div class="auth-subtitle">Sign in with Discord to view the leaderboard</div>
+            <div class="auth-title">How would you like to play?</div>
+            <div class="auth-subtitle">Choose your play mode</div>
             
-            <div class="auth-option" onclick="playAsGuestForLeaderboard()">
-                <div class="auth-icon">👁️</div>
+            <div class="auth-option" onclick="playAsGuest()">
+                <div class="auth-icon">👤</div>
                 <div class="auth-text">
-                    <div class="auth-option-title">View Only</div>
-                    <div class="auth-option-desc">View the leaderboard without signing in. You won't appear on it unless you sign in.</div>
+                    <div class="auth-option-title">Play as Guest</div>
+                    <div class="auth-option-desc">Play without an account. Your progress will be saved locally but won't appear on leaderboard.</div>
                 </div>
             </div>
             
@@ -483,7 +483,7 @@
                 <div class="auth-icon" style="color: #5865F2;">🅭</div>
                 <div class="auth-text">
                     <div class="auth-option-title">Sign in with Discord</div>
-                    <div class="auth-option-desc">Sign in with your Discord account to view and appear on the global leaderboard.</div>
+                    <div class="auth-option-desc">Sign in with Discord to save your progress and appear on global leaderboard.</div>
                 </div>
             </div>
         </div>
@@ -631,9 +631,9 @@
         // Leaderboard data - Will be fetched from your backend
         let leaderboardData = [];
         
-        // Discord OAuth2 Configuration - USING YOUR CREDENTIALS
+        // Discord OAuth2 Configuration - UPDATED FOR YOUR REPOSITORY
         const DISCORD_CLIENT_ID = '1455676135739228182';
-        const DISCORD_REDIRECT_URI = encodeURIComponent('https://tlqtlq.github.io/auth/discord-callback.html');
+        const DISCORD_REDIRECT_URI = encodeURIComponent('https://tlqtlq.github.io/Cyberspace-Luck-Simulator-TEST/auth/discord-callback.html');
         const DISCORD_SCOPE = encodeURIComponent('identify');
         const DISCORD_AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${DISCORD_REDIRECT_URI}&response_type=code&scope=${DISCORD_SCOPE}&prompt=none`;
         
@@ -676,22 +676,6 @@
             unlocked = true;
         }
 
-        function startSimulator() {
-            // For simulator, just start as guest without authentication prompt
-            if (!currentUser) {
-                currentUser = { username: 'Guest', isGuest: true };
-                isGuest = true;
-                localStorage.setItem('cyberspaceUser', JSON.stringify(currentUser));
-            }
-            
-            unlockMedia();
-            document.getElementById('entry-overlay').style.opacity = '0';
-            setTimeout(() => { 
-                document.getElementById('entry-overlay').style.display = 'none'; 
-                bgm.play().catch(() => {}); 
-            }, 500);
-        }
-
         function showAuth() {
             document.getElementById('auth-overlay').style.display = 'flex';
             setTimeout(() => { 
@@ -706,10 +690,15 @@
             }, 500);
         }
 
-        function playAsGuestForLeaderboard() {
-            // For leaderboard view only, don't set a user
+        function playAsGuest() {
+            // Set user as guest
+            currentUser = { username: 'Guest', isGuest: true };
+            isGuest = true;
+            localStorage.setItem('cyberspaceUser', JSON.stringify(currentUser));
+            updateUserDisplay();
+            
             hideAuth();
-            showLeaderboard();
+            startSimulator();
         }
 
         function loginWithDiscord() {
@@ -733,7 +722,7 @@
             
             // Set up message listener for popup callback
             const messageListener = function(event) {
-                // Check origin for security (in production, check against your domain)
+                // Check origin for security
                 if (event.data && event.data.type === 'DISCORD_AUTH_COMPLETE') {
                     const userData = event.data.user;
                     currentUser = userData;
@@ -750,7 +739,7 @@
                     }
                     
                     hideAuth();
-                    showLeaderboard();
+                    startSimulator();
                 }
             };
             
@@ -762,6 +751,15 @@
                     clearInterval(checkPopup);
                     window.removeEventListener('message', messageListener);
                 }
+            }, 500);
+        }
+
+        function startSimulator() {
+            unlockMedia();
+            document.getElementById('entry-overlay').style.opacity = '0';
+            setTimeout(() => { 
+                document.getElementById('entry-overlay').style.display = 'none'; 
+                bgm.play().catch(() => {}); 
             }, 500);
         }
 
